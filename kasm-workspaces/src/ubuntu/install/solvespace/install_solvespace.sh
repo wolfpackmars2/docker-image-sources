@@ -10,6 +10,7 @@ apt install -y git build-essential cmake zlib1g-dev libpng-dev \
 echo "Cloning solvespace source..."
 git clone https://github.com/solvespace/solvespace
 cd solvespace
+git checkout 37484dc # temporary: ref https://github.com/solvespace/solvespace/issues/1668
 git submodule update --init # Prepare submodules
 mkdir build
 cd build
