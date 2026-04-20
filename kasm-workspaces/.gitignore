@@ -1,0 +1,7 @@
+solvespace/solvespace.tgz
+solvespace/solvespace_version.env
+solvespace/solvespace-dev.deb
+**/.build*
+*.build*.log
+build.log
+*.AppImage

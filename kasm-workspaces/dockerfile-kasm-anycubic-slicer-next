@@ -12,10 +12,10 @@ WORKDIR $HOME
 ######### Customize Container Here ###########
 
 
-COPY ./src/ubuntu/install/anycubic_slicer_next $INST_SCRIPTS/anycubic_slicer_next/
+COPY ./src/kasm/ubuntu/install/anycubic_slicer_next $INST_SCRIPTS/anycubic_slicer_next/
 RUN bash $INST_SCRIPTS/anycubic_slicer_next/install_anycubic_slicer_next.sh  && rm -rf $INST_SCRIPTS/anycubic_slicer_next/
 
-COPY ./src/ubuntu/install/anycubic_slicer_next/custom_startup.sh $STARTUPDIR/custom_startup.sh
+COPY ./src/kasm/ubuntu/install/anycubic_slicer_next/custom_startup.sh $STARTUPDIR/custom_startup.sh
 RUN chmod +x $STARTUPDIR/custom_startup.sh
 RUN chmod 755 $STARTUPDIR/custom_startup.sh
 

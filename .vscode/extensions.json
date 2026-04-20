@@ -1,0 +1,7 @@
+{
+  "recommendations": [
+    "docker.docker",
+    "ms-azuretools.vscode-containers",
+    "mads-hartmann.bash-ide-vscode"
+  ]
+}

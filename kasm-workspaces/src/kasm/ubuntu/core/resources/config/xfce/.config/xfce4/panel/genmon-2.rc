@@ -1,0 +1,6 @@
+Command=bash -c "${STARTUPDIR}/genmon_image_info.sh"
+UseLabel=0
+Text=(genmon)
+UpdatePeriod=3600000
+Font=Sans 9
+

@@ -1,0 +1,185 @@
+# syntax=docker/dockerfile:1
+
+#### OS Base Stage ####
+ARG BASE_IMAGE="ubuntu"
+ARG BASE_TAG="24.04"
+FROM ${BASE_IMAGE}:${BASE_TAG} AS base_layer
+
+### Environment config
+ARG BG_IMG=bg_noble.png \
+    EXTRA_SH=noop.sh \
+    DISTRO=ubuntu \
+    LANG='en_US.UTF-8' \
+    LANGUAGE='en_US:en' \
+    LC_ALL='en_US.UTF-8' \
+    TZ='Etc/UTC' \
+    DEBIAN_FRONTEND=noninteractive \
+    HOME=/home/kasm-default-profile \
+    INST_SCRIPTS=/dockerstartup/install \
+    KASM_VNC_PATH=/usr/share/kasmvnc \
+    STARTUPDIR=/dockerstartup
+WORKDIR ${HOME}
+RUN --mount=type=bind,target=/root/src/kasm,source=./src/kasm \
+    --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    mkdir -p ${INST_SCRIPTS}/ && \
+    mkdir -p ${HOME}/Desktop/ && \
+    bash /root/src/kasm/common/core/install/package_rules/setup_package_rules.sh && \
+    bash /root/src/kasm/common/core/install/tools/install_minimum_tools.sh && \
+    bash /root/src/kasm/common/core/install/tools/install_additional_tools.sh
+
+#### Desktop UI LAYER ####
+FROM base_layer AS desktop_layer
+RUN --mount=type=bind,target=/root/src/kasm,source=./src/kasm \
+    --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    bash /root/src/kasm/common/core/install/xfce/install_xfce_ui.sh
+
+#### Additional package layer if needed ####
+FROM desktop_layer AS package_layer
+RUN --mount=type=bind,target=/root/src/kasm,source=./src/kasm \
+    --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    bash /root/src/kasm/common/core/install/sysbox/install_systemd.sh && \
+    bash /root/src/kasm/common/core/install/fonts/install_custom_fonts.sh
+
+#### Kasm software layer ####
+FROM package_layer AS kasm_layer
+RUN --mount=type=bind,target=/root/src/kasm,source=./src/kasm \
+    --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    bash /root/src/kasm/common/core/install/audio/install_audio.sh && \
+    bash /root/src/kasm/common/core/install/audio_input/install_audio_input.sh && \
+    bash /root/src/kasm/common/core/install/sysbox/install_systemd.sh && \
+    bash /root/src/kasm/common/core/install/kasm_vnc/install_kasm_vnc.sh && \
+    bash /root/src/kasm/common/core/install/profile_sync/install_profile_sync.sh && \
+    bash /root/src/kasm/common/core/install/kasm_upload_server/install_kasm_upload_server.sh && \
+    bash /root/src/kasm/common/core/install/gamepad/install_gamepad.sh && \
+    bash /root/src/kasm/common/core/install/webcam/install_webcam.sh && \
+    bash /root/src/kasm/common/core/install/printer/install_printer.sh && \
+        cp /root/src/kasm/common/core/install/printer/start_cups.sh /etc/cups/start_cups.sh && \
+        cp /root/src/kasm/common/core/install/printer/resources/*.ppd /etc/cups/ppd/ && \
+    bash /root/src/kasm/common/core/install/recorder/install_recorder.sh && \
+    cp -r /root/src/kasm/common/core/install/smartcard ${INST_SCRIPTS} && \
+    bash ${INST_SCRIPTS}/smartcard/install_smartcard.sh && \
+    cp -r /root/src/kasm/ubuntu/core/install/virtualgl ${INST_SCRIPTS} && \
+    bash ${INST_SCRIPTS}/virtualgl/install_virtualgl.sh && \
+    cp -r /root/src/kasm/common/core/install/cursors ${INST_SCRIPTS}/cursors && \
+    bash ${INST_SCRIPTS}/cursors/install_cursors.sh && rm -rf ${INST_SCRIPTS}/cursors && \
+    cp -r /root/src/kasm/common/core/install/squid/install ${INST_SCRIPTS}/squid_install && \
+        bash ${INST_SCRIPTS}/squid_install/install_squid.sh && \
+        rm -rf ${INST_SCRIPTS}/squid_install && \
+        mkdir -p /etc/squid/ && \
+        mkdir -p /usr/local/squid/share/icons/ && \
+        mkdir -p /usr/local/squid/share/errors/en/ && \
+        cp /root/src/kasm/common/core/install/squid/resources/*.conf /etc/squid/ && \
+        cp /root/src/kasm/common/core/install/squid/resources/start_squid.sh /etc/squid/start_squid.sh && \
+        cp /root/src/kasm/common/core/install/squid/resources/SN.png /usr/local/squid/share/icons/SN.png && \
+        chown proxy:proxy /usr/local/squid/share/icons/SN.png && \
+        cp /root/src/kasm/common/core/install/squid/resources/error_message/access_denied.html /usr/local/squid/share/errors/en/ERR_ACCESS_DENIED && \
+        chown proxy:proxy /usr/local/squid/share/errors/en/ERR_ACCESS_DENIED && \
+        chmod +x /etc/squid/kasm_squid_adapter && \
+        chmod +x /etc/squid/start_squid.sh && \
+        chmod 4755 /etc/squid/start_squid.sh
+
+#### CONFIG LAYER ####
+FROM kasm_layer AS config_layer
+RUN --mount=type=bind,target=/root/src/kasm,source=./src/kasm \
+    --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
+    echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf && \
+    mkdir -p /usr/share/glvnd/egl_vendor.d && \
+    mkdir -p /usr/share/extra/backgrounds/ && \
+    mkdir -p /usr/share/extra/icons/ && \
+    mkdir -p /usr/share/backgrounds/ && \
+    mkdir -p /etc/kasmvnc/ && \
+    cp /root/src/kasm/ubuntu/core/resources/config/10_nvidia.json /usr/share/glvnd/egl_vendor.d/10_nvidia.json && \
+    cp -r /root/src/kasm/ubuntu/core/install/maximize_script ${STARTUPDIR} && \
+    cp -r /root/src/kasm/ubuntu/core/resources/config/xfce/.config ${HOME}/ && \
+    cp /root/src/kasm/ubuntu/core/resources/images/${BG_IMG} /usr/share/backgrounds/bg_default.png && \
+    cp /root/src/kasm/ubuntu/core/resources/images/icon_ubuntu.png /usr/share/extra/icons/icon_ubuntu.png && \
+    ln -sf /usr/share/extra/icons/icon_ubuntu.png /usr/share/extra/icons/icon_default.png && \
+    cp /root/src/kasm/common/core/resources/images/bg_kasm.png  /usr/share/backgrounds/bg_kasm.png && \
+    cp /root/src/kasm/common/core/resources/images/icon_kasm.png /usr/share/extra/icons/icon_kasm.png && \
+    cp /root/src/kasm/common/core/resources/images/egress_info.svg /usr/share/extra/icons/egress_info.svg && \
+    cp /root/src/kasm/common/core/resources/images/egress_error.svg /usr/share/extra/icons/egress_error.svg && \
+    cp /root/src/kasm/common/core/resources/images/egress_offline.svg /usr/share/extra/icons/egress_offline.svg && \
+    cp -r /root/src/kasm/common/core/resources/scripts/kasm_hook_scripts/* ${STARTUPDIR}/ && \
+    cp -r /root/src/kasm/common/core/resources/scripts/startup_scripts/* ${STARTUPDIR}/ && \
+    cp /root/src/kasm/common/core/resources/config/kasm_vnc/kasmvnc.yaml /etc/kasmvnc/ && \
+    bash ${STARTUPDIR}/set_user_permission.sh ${STARTUPDIR} ${HOME} && \
+    echo 'source ${STARTUPDIR}/generate_container_user' >> ${HOME}/.bashrc && \
+    bash /root/src/kasm/ubuntu/core/install/fix_permissions/fix_permissions.sh && \
+    (groupadd -g 1000 kasm-user \
+        && useradd -M -u 1000 -g 1000 kasm-user \
+        && usermod -a -G kasm-user kasm-user) ; exit 0 && \
+    (groupadd -g 1001 kasm-recorder \
+        && useradd -M -u 1001 -g 1001 kasm-recorder \
+        && usermod -a -G kasm-recorder) ; exit 0 && \
+    mkdir -p /home/kasm-user && \
+    chown -R 1000:0 /home/kasm-user && \
+    bash /root/src/kasm/common/core/install/folder_emblems/install_emblems.sh && \
+    bash /root/src/kasm/common/core/install/extra/${EXTRA_SH}
+
+#### Cleanup Layer ####
+FROM config_layer AS final_layer
+RUN --mount=type=bind,target=/root/src/kasm,source=./src/kasm \
+    --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    bash /root/src/kasm/common/core/install/cleanup/cleanup.sh
+
+#### Finalize Layer ####
+### Labels
+LABEL "org.opencontainers.image.authors"='Kasm Tech "info@kasmweb.com"'
+LABEL "com.kasmweb.image"="true"
+LABEL "com.kasmweb.gpu_acceleration_egl"="nvidia"
+
+### Environment config
+ARG START_PULSEAUDIO=1 \
+    START_XFCE4=1
+
+ENV AUDIO_PORT=4901 \
+    DEBIAN_FRONTEND=noninteractive \
+    DISPLAY=:1 \
+    DISTRO=${DISTRO} \
+    GOMP_SPINCOUNT=0 \
+    HOME=/home/kasm-user \
+    INST_SCRIPTS=/dockerstartup/install \
+    KASMVNC_AUTO_RECOVER=true \
+    KASM_VNC_PATH=/usr/share/kasmvnc \
+    LANG=${LANG} \
+    LANGUAGE=${LANGUAGE} \
+    LC_ALL=${LC_ALL} \
+    LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/usr/lib/i386-linux-gnu:/opt/libjpeg-turbo/lib64/:/usr/local/lib/:/usr/local/nvidia/lib:/usr/local/nvidia/lib64 \
+    MAX_FRAME_RATE=24 \
+    NO_VNC_PORT=6901 \
+    OMP_WAIT_POLICY=PASSIVE \
+    PULSE_RUNTIME_PATH=/var/run/pulse \
+    SDL_GAMECONTROLLERCONFIG="030000005e040000be02000014010000,XInput Controller,platform:Linux,a:b0,b:b1,x:b2,y:b3,back:b8,guide:b16,start:b9,leftstick:b10,rightstick:b11,leftshoulder:b4,rightshoulder:b5,dpup:b12,dpdown:b13,dpleft:b14,dpright:b15,leftx:a0,lefty:a1,rightx:a2,righty:a3,lefttrigger:b6,righttrigger:b7" \
+    SHELL=/bin/bash \
+    START_PULSEAUDIO=${START_PULSEAUDIO} \
+    STARTUPDIR=/dockerstartup \
+    START_XFCE4=${START_XFCE4} \
+    TERM=xterm \
+    VNC_COL_DEPTH=24 \
+    VNCOPTIONS="-PreferBandwidth -DynamicQualityMin=4 -DynamicQualityMax=7 -DLP_ClipDelay=0" \
+    VNC_PORT=5901 \
+    VNC_PORT=5901 \
+    VNC_PW=vncpassword \
+    VNC_RESOLUTION=1280x1024 \
+    VNC_RESOLUTION=1280x720 \
+    VNC_VIEW_ONLY_PW=vncviewonlypassword \
+    TZ=${TZ} \
+    QT_QPA_PLATFORMTHEME=gtk3
+
+### Ports and user
+EXPOSE ${VNC_PORT} \
+       ${NO_VNC_PORT} \
+       ${UPLOAD_PORT} \
+       ${AUDIO_PORT}
+WORKDIR ${HOME}
+USER 1000
+
+ENTRYPOINT ["/dockerstartup/kasm_default_profile.sh", "/dockerstartup/vnc_startup.sh", "/dockerstartup/kasm_startup.sh"]
+CMD ["--wait"]
