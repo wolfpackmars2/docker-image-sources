@@ -17,6 +17,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     INST_DIR=/root/src/kasm \
     INST_SCRIPTS="common/core/install/tools/install_tools_deluxe.sh \
                   common/core/install/tools/install_additional_tools.sh \
+                  ubuntu/install/dive/install_dive.sh \
                   common/core/install/chrome/install_chrome.sh \
                   common/core/install/chromium/install_chromium.sh \
                   ubuntu/install/sublime_text/install_sublime_text.sh \
