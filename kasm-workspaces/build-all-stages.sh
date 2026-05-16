@@ -8,6 +8,8 @@
 #     5. config_layer
 #     6. final_layer
 
+# Note: if dns doesn't work, add --network=host to the docker build command
+
 CORE_DOCKERFILE="dockerfile-kasm-noble-core"
 TEST_DOCKERFILE="dockerfile-kasm-noble-desktop-basic"
 STAGE=0
