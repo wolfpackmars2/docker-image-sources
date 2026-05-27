@@ -34,6 +34,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     STARTUPDIR=/dockerstartup \
     XDG_RUNTIME_DIR=/docker
 
+ARG DEV=1
+
 WORKDIR ${HOME}
 
 # Rootless DinD
@@ -53,7 +55,7 @@ RUN --mount=type=bind,target=/root/src/kasm,source=./src/kasm \
         bash ${INST_DIR}/${SCRIPT} || exit 1; \
     done && \
     bash ${INST_DIR}/common/core/install/new_startup/add_startup_item.sh ${INST_DIR}/common/core/install/gnome_keyring/010-gnome-keyring.sh && \
-    bash ${INST_DIR}/common/core/install/new_startup/add_startup_item.sh ${INST_DIR}/ubuntu/install/dind_rootless/300-dind_rootless.sh && \
+    bash ${INST_DIR}/common/core/install/new_startup/add_startup_item.sh ${INST_DIR}/ubuntu/install/dind_rootless/300-dind_rootless && \
     ${STARTUPDIR}/set_user_permission.sh ${HOME} && \
     rm -f /etc/X11/xinit/XClients && \
     SKIP_PKG_CLEANUP=true bash ${INST_DIR}/common/core/install/cleanup/cleanup.sh && \
@@ -61,7 +63,7 @@ RUN --mount=type=bind,target=/root/src/kasm,source=./src/kasm \
     mkdir -p /home/kasm-user && \
     chown -R 1000:0 /home/kasm-user && \
     ls -alhR /home && \
-    ls -alh /var/log && du -h /var/log && env | sort
+    ls -alhR ${STARTUPDIR} && env | sort
 
 # Userspace Runtime
 ENV HOME=/home/kasm-user

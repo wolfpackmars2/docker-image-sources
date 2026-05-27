@@ -1,33 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-# I am 000.sh for stuff that must always run first
-
-_DEV=0
-if [[ "${DEV:-0}" == "1" ]]; then
-    # enable early debugging with `DEV=1 __SCRIPTNAME`
-    _DEV=1
-    set -x
-    PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
-fi
-
-_TRUE=1
-_FALSE=0
-
-__SCRIPTPID=$$
-__SCRIPTARGS="$*"
-__SCRIPTFULLNAME=$(realpath "$0")
-__SCRIPTNAME=$(basename "${__SCRIPTFULLNAME}")
-__SCRIPTFULLPATH=$(dirname "${__SCRIPTFULLNAME}")
-
-# ============================================================================
-## Do not modify anything above this line
-
-# If -V is passed, print the version and exit
-if [[ "$1" == "-V" ]]; then
-    echo "Rev 0"
-    exit 0
-fi
+source "${STARTUPDIR}/startup.d/__common.insh"
 
 # Set permissions for XDG_RUNTIME_DIR to prevent issues with some applications
 if [ -d "${XDG_RUNTIME_DIR}" ]; then

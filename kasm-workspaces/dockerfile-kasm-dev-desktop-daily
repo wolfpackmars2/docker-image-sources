@@ -1,16 +1,23 @@
 # syntax=docker/dockerfile:1
 
+## kasmweb/core-ubuntu-noble:1.18.0-rolling-daily 2026-03-30
+#ARG BASE_IMAGE="kasmweb/core-ubuntu-noble"
+#ARG BASE_IMAGE_DIGEST="sha256:35c38a239ebe772e4cdcb89e041ed12375768a73d026afab1d712c5b9417541b"
+#ARG BASE_TAG="1.18.0-rolling-daily"
 ARG BASE_IMAGE="sgroesz/kasm-noble-dev-desktop"
 ARG BASE_TAG="1.18.0-latest"
 FROM ${BASE_IMAGE}:${BASE_TAG}
-
+#FROM ${BASE_IMAGE}@${BASE_IMAGE_DIGEST} AS app_layer
+ARG PATCH_DATE
 USER root
 
 RUN --mount=type=bind,target=/root/src/kasm,source=./src/kasm \
     --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt-get update && apt-get upgrade -y && \
-    PATCH=1 bash /root/src/kasm/ubuntu/install/image_info/setup_image_info.sh
+    apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y && \
+    apt-get autoremove -y --purge && \
+    bash /root/src/kasm/ubuntu/install/image_info/setup_image_info.sh
 
 # Userspace Runtime
 USER 1000

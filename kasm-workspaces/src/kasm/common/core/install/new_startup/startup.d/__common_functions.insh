@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+# This is a shell script include file. It should be sourced early by other scripts and provides common functions for all startup scripts.
+# It should be called as source "${STARTUPDIR}/startup.d/__common_function.insh", after __common.insh is sourced.
+
+# Use template.insh to set default values for missing variables
+source "${STARTUPDIR}/startup.d/template.insh"
+
+__check_variable_values() {
+    # Normalize some variable values so they are sane.
+
+    # If KEEPALIVE is false and PID is 0, then set PID to $__SCRIPT_PID
+    if [ "$KEEPALIVE" == "0" ] && [ "$PID" == "0" ]; then
+        PID="${__SCRIPT_PID}"
+    fi
+
+    # If PID_SEARCH_STRING is empty and KEEPALIVE is true, set PID_SEARCH_STRING to the first 15 characters of START_COMMAND (if START_COMMAND is not empty)
+    if [ -z "${PID_SEARCH_STRING}" ] && [ "${KEEPALIVE}" == "1" ] && [ -n "${START_COMMAND}" ]; then
+        PID_SEARCH_STRING="${START_COMMAND:0:15}"
+    fi
+
+}
+
+__set_pid() {
+    # Check if ${PID_SEARCH_STRING} is running and return its PID
+    if [ "$PID" == "0" ]; then
+        __PID=$(pgrep -nf "${PID_SEARCH_STRING}" || echo -n "0")
+    else
+        __PID="${PID}"
+    fi
+}
+
+__start() {
+    echo "Starting ${TITLE}..."
+    sh -c "${__RUN_COMMAND}"
+}
+

@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+# Set the folowing variables for the startup item
+# TITLE: string title for the process being started
+TITLE="Docker-in-Docker (Rootless)"
+# DESCRIPTION: string description of the process being started
+DESCRIPTION="${TITLE}"
+# START_COMMAND: command line to start the process. Note: START_COMMAND should be non-blocking
+START_COMMAND="dockerd-rootless.sh &"
+# PID_SEARCH_STRING: string to search for in process list to find the PID
+PID_SEARCH_STRING="rootlesskit"
+# KEEPALIVE: set to $_TRUE (1) to enable automatic restarting of the process if it exits, or $_FALSE (0) to disable
+KEEPALIVE=$_TRUE
+# MAXIMIZE: set to $_TRUE (1) to attempt to maximize the process window on start; set to $_FALSE to disable
+MAXIMIZE=$_FALSE
+# RESTART_COMMAND: command to restart the process. If different from START_COMMAND, specify the command line here. Otherwise use "${START_COMMAND}" to use the same command line for starting and restarting.
+RESTART_COMMAND="${START_COMMAND}"
+# Set PID to either 0 or $__SCRIPTID. If 0 or unset, __PID will be set elsewhere in the startup script using PID_SEARCH_STRING. If set to anything other than 0, __PID will use the value set here
+PID=0
+
+__pre-run() {
+    # This function will be run before the process is started. It can be used to set environment variables or perform other setup tasks.
+    # wait until the workspace desktop environment is ready
+    /usr/bin/filter_ready
+    /usr/bin/desktop_ready
+}
+
+__post-run() {
+    # This function will be run after the process is started. It can be used to perform any necessary cleanup or finalization tasks.
+    sleep 5 # give docker some time to start
+}

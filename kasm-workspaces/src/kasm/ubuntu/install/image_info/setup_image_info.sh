@@ -15,14 +15,14 @@ __SCRIPTFULLNAME=$(realpath "$0")
 __SCRIPTNAME=$(basename "${__SCRIPTFULLNAME}")
 __SCRIPTFULLPATH=$(dirname "${__SCRIPTFULLNAME}")
 
-apt-get update
-apt-get -y install xfce4-genmon-plugin inxi
-
 if [ ! -d "${STARTUPDIR}/image_info" ]; then
     mkdir -p "${STARTUPDIR}/image_info"
 fi
 
-if [ -z ${PATCH+x} ]; then
+if [ -z ${PATCH_DATE+x} ]; then
+    echo "Installing genmon..."
+    apt-get update
+    apt-get -y install xfce4-genmon-plugin inxi
     echo "Creating imagebuild.txt..."
     printf "%(%Y-%m-%d %H:%M.%S %Z)T" -1 > "${STARTUPDIR}/image_info/imagebuild.txt"
     echo "Copying genmon_image_info.sh..."
@@ -32,12 +32,7 @@ if [ -z ${PATCH+x} ]; then
     cp "${__SCRIPTFULLPATH}/genmon_image_info.sh" "${STARTUPDIR}/genmon_image_info.sh"
     chmod 755 "${STARTUPDIR}/genmon_image_info.sh"
 else
-    echo "Creating imagepatch.txt..."
-    printf "%(%Y-%m-%d %H:%M.%S %Z)T" -1 > "${STARTUPDIR}/image_info/imagepatch.txt"
-    if [ ! -f "${STARTUPDIR}/genmon_image_info.sh" ]; then
-        echo "genmon_image_info.sh not found, copying..."
-        cp "${__SCRIPTFULLPATH}/genmon_image_info.sh" "${STARTUPDIR}/genmon_image_info.sh"
-        chmod 755 "${STARTUPDIR}/genmon_image_info.sh"
-    fi
+    echo "Creating imagepatch.txt with contents ${PATCH_DATE}..."
+    #printf "%(%Y-%m-%d %H:%M.%S %Z)T" -1 > "${STARTUPDIR}/image_info/imagepatch.txt"
+    printf "${PATCH_DATE}" > "${STARTUPDIR}/image_info/imagepatch.txt"
 fi
-

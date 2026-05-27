@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+# This file should have the same name as the script which sources it
+# For example, the script named 300-Custom_startup.sh will source this file if it is named "300-Custom_startup.insh"
+
+# Set the folowing variables for the startup item
+# TITLE: string title for the process being started
+TITLE="${TITLE:-Default Title}"
+# DESCRIPTION: string description of the process being started
+DESCRIPTION="${DESCRIPTION:-${TITLE}}"
+# START_COMMAND: command line to start the process. Note: START_COMMAND should be non-blocking
+START_COMMAND="${START_COMMAND:-:}"
+# PID_SEARCH_STRING: string to search for in process list to find the PID
+PID_SEARCH_STRING="${PID_SEARCH_STRING:-}"
+# KEEPALIVE: set to $_TRUE (1) to enable automatic restarting of the process if it exits, or $_FALSE (0) to disable
+KEEPALIVE=${KEEPALIVE:-$_FALSE}
+# MAXIMIZE: set to $_TRUE (1) to attempt to maximize the process window on start; set to $_FALSE to disable; not implemented yet
+MAXIMIZE=${MAXIMIZE:-$_FALSE}
+# RESTART_COMMAND: command to restart the process. If different from START_COMMAND, specify the command line here. Default to "${START_COMMAND}" to use the same command line for starting and restarting.
+RESTART_COMMAND="${RESTART_COMMAND:-${START_COMMAND}}"
+# Set PID to either 0 or $__SCRIPT_PID. If 0, __PID will be set elsewhere in the startup script using PID_SEARCH_STRING. If set to anything other than 0, __PID will use the value set here
+PID=${PID:-0}

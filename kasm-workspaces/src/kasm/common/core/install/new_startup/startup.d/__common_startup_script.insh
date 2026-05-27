@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+# This is a shell script include file. It should be sourced early by other scripts and provides common functions for all startup scripts.
+# It should be called using:
+#if [[ -f "${STARTUP_DIR}/startup.d/__common_functions.insh" ]]; then
+#    source "${STARTUP_DIR}/startup.d/__common_function.insh"
+#fi
+
+__RUN_COMMAND="${START_COMMAND}"
+if [[ "${RESTART:-$_FALSE}" == "$_TRUE" ]]; then
+    if [[ "$RESTART_COMMAND:-$START_COMMAND" -ne "${START_COMMAND}" ]]; then
+        __RUN_COMMAND="${RESTART_COMMAND}"
+    fi
+else
+    __pre-run
+fi
+__start
+__post-run
+__check_variable_values # running this here allows the user to modify variables in __pre or _post-run
+i=0
+while true; do
+    if [ $i -gt 5 ]; then
+        echo "Failed to start ${TITLE} after $i attempts. Exiting."
+        __RETURNVAL="$_FALSE:0"
+        break
+    fi
+    __set_pid
+    if [ "$__PID" -eq 0 ]; then
+        sleep 5 # give the process some time to start
+    else
+        echo "${TITLE} is running with PID ${__PID}"
+        __RETURNVAL="${KEEPALIVE}:${__PID}"
+        break
+    fi
+    i=$((i + 1))
+done
+echo "${__RETURNVAL}"
+if [[ -n "${OUTPUT:-}" && -w $(dirname "${OUTPUT}") ]]; then
+    # Output format: $KEEPALIVE:$__PID
+    echo -n "${__RETURNVAL}" > "${OUTPUT}"
+fi

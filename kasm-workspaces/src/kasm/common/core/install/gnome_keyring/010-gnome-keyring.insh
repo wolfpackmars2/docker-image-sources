@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+# Set the folowing variables for the startup item
+# TITLE: string title for the process being started
+TITLE="gnome-keyring-daemon"
+# START_COMMAND: command line to start the process. Note: START_COMMAND should be non-blocking
+START_COMMAND="gnome-keyring-daemon --daemonize --components=secrets"
+# PID_SEARCH_STRING: string to search for in process list to find the PID
+PID_SEARCH_STRING="gnome-keyring-daemon"
+# KEEPALIVE: set to $_TRUE (1) to enable automatic restarting of the process if it exits, or $_FALSE (0) to disable
+KEEPALIVE=$_TRUE
+
+# ============================================================================
+# Customize this section
+#---  FUNCTION  ----------------------------------------------------------------
+#          NAME:  __generate_default_keyring
+#   DESCRIPTION:  Generate a default keyring if it doesn't exist
+#         USAGE:  __generate_default_keyring
+#-------------------------------------------------------------------------------
+__generate_default_keyring() {
+    # keyring directory check
+    if [ ! -d "${HOME}/.local/share/keyrings" ]; then
+        echo "Creating keyrings directory..."
+        mkdir -p "${HOME}/.local/share/keyrings"
+    fi
+    # default keyring reference file check
+    if [ ! -f "${HOME}/.local/share/keyrings/default" ]; then
+        echo "Creating default keyring reference file..."
+        echo -n "Default_keyring" > "${HOME}/.local/share/keyrings/default"
+        chown $(id -u):$(id -g) "${HOME}/.local/share/keyrings/default"
+        chmod 644 "${HOME}/.local/share/keyrings/default"
+    fi
+    # default keyring file check
+    __KEYRING_FILE="$(cat ${HOME}/.local/share/keyrings/default).keyring"
+    if [ ! -f "${HOME}/.local/share/keyrings/${__KEYRING_FILE}" ]; then
+        echo "Keyring file not found. Creating blank keyring..."
+        # Create a blank keyring file
+        echo -e "[keyring]\ndisplay-name=Default keyring\nctime=$(date +%s)\nmtime=0\nlock-on-idle=false\nlock-after=false" > "${HOME}/.local/share/keyrings/${__KEYRING_FILE}"
+        chown $(id -u):$(id -g) "${HOME}/.local/share/keyrings/${__KEYRING_FILE}"
+        chmod 600 "${HOME}/.local/share/keyrings/${__KEYRING_FILE}"
+    fi
+}
+
+#---  FUNCTION  ----------------------------------------------------------------
+#          NAME:  __pre-run
+#   DESCRIPTION:  Perform any actions prior to running "${START_COMMAND}"
+#         USAGE:  __pre-run
+#         NOTES:  These actions are only run during initial "${START_COMMAND}"
+#                 run, and will not be run again if the process is restarted as
+#                 part of the keep-alive mechanism
+#-------------------------------------------------------------------------------
+__pre-run() {
+    # any pre-run setup can be done here. If nothing is needed, this function can be left empty or removed
+    __generate_default_keyring
+}

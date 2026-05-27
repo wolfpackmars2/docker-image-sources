@@ -1,6 +1,27 @@
 # Repository Conventions & Standards
 This repository is evolving. The standards and conventions may change regularly as needed.
 
+## Docker commands
+
+### Push -latest to STABLE
+```bash
+docker pull sgroesz/kasm-noble-dev-desktop:1.18.0-latest
+docker image tag sgroesz/kasm-noble-dev-desktop:1.18.0-latest sgroesz/kasm-noble-dev-desktop:1.18.0
+docker push sgroesz/kasm-noble-dev-desktop:1.18.0
+```
+
+### Push -dev to -latest
+```bash
+docker image tag sgroesz/kasm-noble-dev-desktop:1.18.0-dev sgroesz/kasm-noble-dev-desktop:1.18.0-latest
+docker push sgroesz/kasm-noble-dev-desktop:1.18.0-latest
+```
+
+### Build and push -daily
+```bash
+docker build --network=host --build-arg PATCH_DATE="$(date -u "+%Y-%m-%d %Z")" -f dockerfile-kasm-dev-desktop-daily -t "sgroesz/kasm-noble-dev-desktop:1.18.0-daily"
+docker push sgroesz/kasm-noble-dev-desktop:1.18.0-latest
+```
+
 ## Docker Image Naming Conventions
 - The first part of the image name is an optional group name. Images created for use with KASM will be group "kasm". This helps identify images which work best with Kasm Workspaces.
 - Following the optional group name will be an optional IMAGE CATEGORY. CORE images will use "core" as the IMAGE CATEGORY. This will identify images which are intended to be used as a base for building more images. CORE images may not be functionally complete by themselves and may not run without further modifications.

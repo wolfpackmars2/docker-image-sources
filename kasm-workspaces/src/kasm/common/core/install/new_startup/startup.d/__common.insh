@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+# This is a shell script include file. It should be sourced early by other scripts and provides boilerplate for all startup scripts.
+# It should be called as source "${STARTUPDIR}/startup.d/__common.insh"
+
+_DEV=0
+if [[ "${DEV:-0}" == "1" ]]; then
+    # enable early debugging with `DEV=1 __SCRIPTNAME`
+    _DEV=1
+    set -x
+    PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+fi
+
+_TRUE=1
+_FALSE=0
+
+# Variables will not be modified if they are already set.
+__SCRIPT_INVOKEDAS="${__SCRIPT_INVOKEDAS:-$0}"
+__SCRIPT_INVOKEDAS_FULLPATH="${__SCRIPT_INVOKEDAS_FULLPATH:-$(realpath -s "$0")}"
+__SCRIPT_INVOKEDAS_FILENAME=$(basename "${__SCRIPT_INVOKEDAS_FULLPATH}")
+__SCRIPT_PID=${__SCRIPT_PID:-$$}
+__SCRIPT_ARGS="${__SCRIPT_ARGS:-$*}"
+__SCRIPT_ARGS_ARRAY=( "${__SCRIPT_ARGS_ARRAY[@]:-"$@"}" )
+__SCRIPT_FULLPATH="${__SCRIPT_FULLPATH:-$(realpath -s "$0")}"
+__SCRIPT_FILENAME=$(basename "${__SCRIPT_FULLPATH}")
+__SCRIPT_DIR=$(dirname "${__SCRIPT_FULLPATH}")
+
+if [[ -f "${__SCRIPT_FULLPATH%.sh}.insh" ]]; then
+    source "${__SCRIPT_FULLPATH%.sh}.insh"
+fi
