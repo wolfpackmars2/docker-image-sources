@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
-set -eu
-
-if [ ! -z ${DEV+x} ] && [ "$DEV" -eq "1" ]; then
-    # enable early debugging with `DEV=1 __SCRIPTNAME`
+set -e
+if [[ "${DEV:-0}" == "1" ]]; then
     set -x
     PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 fi

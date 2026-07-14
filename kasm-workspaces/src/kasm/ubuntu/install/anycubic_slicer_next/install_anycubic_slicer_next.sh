@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-set -ex
+set -e
+if [[ "${DEV:-0}" == "1" ]]; then
+    set -x
+    PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+fi
 
 # Install Anycubic Slicer Next
 apt-get update
