@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+TITLE="Calibre Desktop"
+DESCRIPTION="${TITLE}"
+START_COMMAND="calibre &"
+PID_SEARCH_STRING="calibre"
+KEEPALIVE=$_TRUE
+MAXIMIZE=$_TRUE
+MAXIMIZE_NAME="calibre — || Calibre Library ||"
+RESTART_COMMAND="${START_COMMAND}"
+PID=0
+
+__pre-run() {
+    # This function will be run before the process is started. It can be used to set environment variables or perform other setup tasks.
+    # wait until the workspace desktop environment is ready
+    /usr/bin/filter_ready
+    /usr/bin/desktop_ready
+}
+
+__post-run() {
+    # This function will be run after the process is started. It can be used to perform any necessary cleanup or finalization tasks.
+    sleep 3 # give app some time to start
+    PID=$(pgrep -o ${PID_SEARCH_STRING} || echo -n "0") # get PID of oldest (first) matching process
+}
