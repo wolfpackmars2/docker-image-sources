@@ -14,8 +14,10 @@ START_COMMAND="${START_COMMAND:-:}"
 PID_SEARCH_STRING="${PID_SEARCH_STRING:-}"
 # KEEPALIVE: set to $_TRUE (1) to enable automatic restarting of the process if it exits, or $_FALSE (0) to disable
 KEEPALIVE=${KEEPALIVE:-$_FALSE}
-# MAXIMIZE: set to $_TRUE (1) to attempt to maximize the process window on start; set to $_FALSE to disable; not implemented yet
+# MAXIMIZE: set to $_TRUE (1) to attempt to maximize the process window on start; set to $_FALSE to disable
 MAXIMIZE=${MAXIMIZE:-$_FALSE}
+# MAXIMIZE_NAME: string name to search for when attempting to maximize the process window. Default to "${TITLE}" which is the general convention for window titles, but can be overridden if the process window title does not match the desired search string.
+MAXIMIZE_NAME="${MAXIMIZE_NAME:-${TITLE}}"
 # RESTART_COMMAND: command to restart the process. If different from START_COMMAND, specify the command line here. Default to "${START_COMMAND}" to use the same command line for starting and restarting.
 RESTART_COMMAND="${RESTART_COMMAND:-${START_COMMAND}}"
 # Set PID to either 0 or $__SCRIPT_PID. If 0, __PID will be set elsewhere in the startup script using PID_SEARCH_STRING. If set to anything other than 0, __PID will use the value set here

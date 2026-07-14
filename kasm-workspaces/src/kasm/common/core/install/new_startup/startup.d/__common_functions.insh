@@ -24,7 +24,7 @@ __check_variable_values() {
 __set_pid() {
     # Check if ${PID_SEARCH_STRING} is running and return its PID
     if [ "$PID" == "0" ]; then
-        __PID=$(pgrep -nf "${PID_SEARCH_STRING}" || echo -n "0")
+        __PID=$(pgrep -of "${PID_SEARCH_STRING}" || echo -n "0")
     else
         __PID="${PID}"
     fi

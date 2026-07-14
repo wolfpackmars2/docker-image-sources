@@ -20,6 +20,21 @@ source "${STARTUPDIR}/startup.d/__common_functions.insh" # common functions and 
 # Customize this section
 
 #---  FUNCTION  ----------------------------------------------------------------
+#          NAME:  __maximize
+#   DESCRIPTION:  Maximize the process window if MAXIMIZE is set to true (1)
+#         USAGE:  __maximize
+#         NOTES:  This is run after __post_run any time the process is (re)started.
+#                 This function can be overridden by the processes .insh file
+#-------------------------------------------------------------------------------
+if ! declare -f __maximize >/dev/null; then
+    __maximize() {
+        if [ "${MAXIMIZE:-0}" == "1" ] && [ "${MAXIMIZE_NAME:-}" != "" ]; then
+            wmctrl -Fr "${MAXIMIZE_NAME}" -b add,maximized_vert,maximized_horz || wmctrl -r "${MAXIMIZE_NAME}" -b add,maximized_vert,maximized_horz || echo "Failed to maximize window with name ${MAXIMIZE_NAME}"
+        fi
+    }
+fi
+
+#---  FUNCTION  ----------------------------------------------------------------
 #          NAME:  __pre-run
 #   DESCRIPTION:  Perform any actions prior to running "${START_COMMAND}"
 #         USAGE:  __pre-run

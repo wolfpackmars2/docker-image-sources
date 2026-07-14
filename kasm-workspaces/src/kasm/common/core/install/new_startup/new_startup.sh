@@ -4,15 +4,15 @@ shopt -s extglob
 
 # I am new_startup.sh
 
-export DEV=1 # uncomment to enable debugging for this script and all scripts run by it. All output will be logged to "/tmp/${__TMPDIR}/MASTER.log"
+#export DEV=1 # uncomment to enable debugging for this script and all scripts run by it. All output will be logged to "/tmp/${__TMPDIR}/MASTER.log"
 
 __TMPDIR=$(mktemp -d)
+__LOGFILE="${__TMPDIR}/MASTER.log"
+exec > >(tee -a "${__LOGFILE}") 2>&1
+
 _DEV=0
 if [[ "${DEV:-0}" == "1" ]]; then
-    # enable early debugging with `DEV=1 __SCRIPTNAME`
     _DEV=1
-    __LOGFILE="${__TMPDIR}/MASTER.log"
-    exec > >(tee -a "${__LOGFILE}") 2>&1
     set -x
     PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
     echo "Running in: $BASH_VERSION"
@@ -160,8 +160,12 @@ do
             __TMP_PID="${__STARTUP_PROCS[${__cmd}]:2}"
             __PID="${__TMP_PID%%:*}"
             if [ ${__PID} -gt 0 ] && ! kill -0 ${__PID} 2>/dev/null; then
-                echo "Process ${__PID} has exited, restarting..."
-                __restart "${__cmd}" "${__PID}"
+                if [[ "${_DEV}" == "1" ]]; then
+                    echo "DEV mode: Process ${__PID} (${__cmd##*/}) has exited. Auto-restart disabled."
+                else
+                    echo "Process ${__PID} has exited, restarting..."
+                    __restart "${__cmd}" "${__PID}"
+                fi
             fi
         fi
     done

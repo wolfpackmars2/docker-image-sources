@@ -8,7 +8,7 @@
 
 __RUN_COMMAND="${START_COMMAND}"
 if [[ "${RESTART:-$_FALSE}" == "$_TRUE" ]]; then
-    if [[ "$RESTART_COMMAND:-$START_COMMAND" -ne "${START_COMMAND}" ]]; then
+    if [[ "${RESTART_COMMAND:-$START_COMMAND}" != "${START_COMMAND}" ]]; then
         __RUN_COMMAND="${RESTART_COMMAND}"
     fi
 else
@@ -26,15 +26,16 @@ while true; do
     fi
     __set_pid
     if [ "$__PID" -eq 0 ]; then
-        sleep 5 # give the process some time to start
+        sleep 5 # give the process additional time to start
     else
-        echo "${TITLE} is running with PID ${__PID}"
+        echo "${TITLE} is running with PID ${__PID} and KEEPALIVE set to ${KEEPALIVE}"
         __RETURNVAL="${KEEPALIVE}:${__PID}"
+        PID="${__PID}"
+        __maximize
         break
     fi
     i=$((i + 1))
 done
-echo "${__RETURNVAL}"
 if [[ -n "${OUTPUT:-}" && -w $(dirname "${OUTPUT}") ]]; then
     # Output format: $KEEPALIVE:$__PID
     echo -n "${__RETURNVAL}" > "${OUTPUT}"
