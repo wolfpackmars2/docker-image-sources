@@ -6,7 +6,8 @@
 	],
 	"settings": {
 		"files.associations": {
-			"*dockerfile*": "dockerfile"
+			"*dockerfile*": "dockerfile",
+			"*.insh": "shellscript"
 		},
 		"markdown.validate.enabled": true
 	},

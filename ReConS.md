@@ -3,30 +3,45 @@ This repository is evolving. The standards and conventions may change regularly 
 
 ## Docker commands
 
-### Push -latest to STABLE
+See `kasm-workspaces/build.sh` and `kasm-workspaces/BUILDING.md` for the canonical build and push workflow.
+
+### Dev build (auto-loads to KASM host for testing)
 ```bash
-docker pull sgroesz/kasm-noble-dev-desktop:1.18.0-latest
-docker image tag sgroesz/kasm-noble-dev-desktop:1.18.0-latest sgroesz/kasm-noble-dev-desktop:1.18.0
-docker push sgroesz/kasm-noble-dev-desktop:1.18.0
+./build.sh <alias> --dev
 ```
 
-### Push -dev to -latest
+### Release build and push to Docker Hub
 ```bash
-docker image tag sgroesz/kasm-noble-dev-desktop:1.18.0-dev sgroesz/kasm-noble-dev-desktop:1.18.0-latest
-docker push sgroesz/kasm-noble-dev-desktop:1.18.0-latest
+./build.sh <alias> --push
 ```
 
-### Build and push -daily
+Note: `-dev` and release images are built separately with different build args and are **not interchangeable**.
+Do not promote a `-dev` build to `-latest` — build them independently.
+
+### Promote -latest to stable
 ```bash
-docker build --network=host --build-arg PATCH_DATE="$(date -u "+%Y-%m-%d %Z")" -f dockerfile-kasm-dev-desktop-daily -t "sgroesz/kasm-noble-dev-desktop:1.18.0-daily"
-docker push sgroesz/kasm-noble-dev-desktop:1.18.0-latest
+docker pull sgroesz/kasm-calibre:1.18.0-latest
+docker image tag sgroesz/kasm-calibre:1.18.0-latest sgroesz/kasm-calibre:1.18.0
+docker push sgroesz/kasm-calibre:1.18.0
 ```
 
 ## Docker Image Naming Conventions
-- The first part of the image name is an optional group name. Images created for use with KASM will be group "kasm". This helps identify images which work best with Kasm Workspaces.
-- Following the optional group name will be an optional IMAGE CATEGORY. CORE images will use "core" as the IMAGE CATEGORY. This will identify images which are intended to be used as a base for building more images. CORE images may not be functionally complete by themselves and may not run without further modifications.
-- The third optional name will be the OS base distro name. If the base distro is not relevant or there is no base distro included in the image, the distro name will be omitted.
-- The remainder of the image name will be short and descriptive
+
+Image names follow the pattern: `kasm[-core][-os][-descriptor]`
+
+- **`kasm`** — always the first segment; identifies images intended for KASM Workspaces.
+- **`core`** — optional second segment; marks images used as base layers that may not be directly usable as a workspace without further modification.
+- **OS name** — optional; include when the OS is the primary identity of the image (desktop/core/environment images). Omit for single-application images where the underlying OS is an implementation detail.
+- **Descriptor** — short, lowercase, hyphenated application or purpose name.
+
+```
+kasm-core-noble          # Core base layer for Ubuntu 24.04 Noble
+kasm-noble-dev-desktop   # Noble-specific full development desktop
+kasm-noble-desktop-basic # Noble-specific base desktop for building other images
+kasm-calibre             # Calibre app (OS not relevant to users)
+kasm-solvespace          # Solvespace app (OS not relevant to users)
+kasm-anycubic-slicer-next
+```
 
 ## Docker Image Tags
 Image tagging schemes will vary based on several factors.
@@ -41,13 +56,16 @@ Images with a -subtag should generally work. The -subtag should help provide a g
 The -subtag "-dev" may occasionally exist for test images which are probably broken or when testing changes which are expected to not work properly or be incomplete. "-dev" images should be removed from the repo when no longer needed.
 
 ## Kasm Image Examples
-`kasm-core-noble:1.18.0` Core Ubuntu 24.04 Noble image for Kasm Workspaces version 1.18. This image has been tested and proven to work, but may be out of date and doesn't contain the most current updates and changes.
 
-`kasm-core-noble:1.18.0-latest` Core Ubuntu 24.04 Noble image for Kasm Workspaces version 1.18. This image is the most current available, but may contain unknown bugs or issues which may prevent the image from running properly. Eventually, a testing scheme will be implemented which should make these more reliable. Even so, these images are usually reliable, and any problems will be fixed quickly after discovery.
+`kasm-core-noble:1.18.0` — Core Ubuntu 24.04 Noble base layer. Tested, stable, but may be out of date.
 
-`kasm-noble-simple-desktop:1.18.0-dev` A temporary -dev image for testing.
+`kasm-core-noble:1.18.0-latest` — Most current build of the Noble core. Usually reliable, but may contain unknown issues.
 
-`kasm-solvespace:1.18.0` A single application Kasm workspace where the underlying OS is not important.
+`kasm-calibre:1.18.0-dev` — Temporary dev image (DEV=1: sudo enabled, debug output). Not suitable for production. Remove when testing is complete.
+
+`kasm-solvespace:1.18.0` — Single-application workspace where the underlying OS is not user-facing.
+
+`kasm-noble-dev-desktop:1.18.0-daily` — Noble dev desktop rebuilt daily for up-to-date packages.
 
 # Dockerfile and Image Conventions
 Dockerfiles should generate images with traceable layers, as much as possible. Images should be broken up into layers in such a way that image updates are as small as possible. Image layers should be grouped such that when an update occurs, the fewest image layers possible should be affected.

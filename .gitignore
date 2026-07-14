@@ -5,3 +5,8 @@ solvespace/solvespace-dev.deb
 *.build*.log
 build.log
 *.AppImage
+build*.log
+kasm-workspaces/BUILDING.md
+kasm-workspaces/.env
+kasm-workspaces/logs/
+kasm-workspaces/src/kasm/ubuntu/install/phantom_swamp_skunk/pss-build.tgz
