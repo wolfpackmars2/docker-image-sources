@@ -2,8 +2,8 @@
 set -ex
 
 # Install Solvespace
-apt update
-apt install -y git build-essential cmake zlib1g-dev libpng-dev \
+apt-get update
+apt-get install -y git build-essential cmake zlib1g-dev libpng-dev \
     libcairo2-dev libfreetype6-dev libjson-c-dev \
     libfontconfig1-dev libgtkmm-3.0-dev libpangomm-1.4-dev \
     libgl-dev libglu-dev libspnav-dev qt6-base-dev
@@ -23,13 +23,3 @@ cd ../..
 rm -rf solvespace
 echo "Done."
 
-# Cleanup for app layer
-chown -R 1000:0 $HOME
-find /usr/share/ -name "icon-theme.cache" -exec rm -f {} \;
-if [ -z ${SKIP_CLEAN+x} ]; then
-  apt-get autoclean
-  rm -rf \
-    /var/lib/apt/lists/* \
-    /var/tmp/* \
-    /tmp/*
-fi
