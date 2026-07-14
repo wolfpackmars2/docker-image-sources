@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+TITLE="Anycubic Slicer Next"
+DESCRIPTION="${TITLE}"
+START_COMMAND="/usr/bin/AnycubicSlicerNext &"
+PID_SEARCH_STRING="AnycubicSlicerNext"
+KEEPALIVE=$_TRUE
+MAXIMIZE=$_TRUE
+RESTART_COMMAND="${START_COMMAND}"
+PID=0
+
+__pre-run() {
+    /usr/bin/filter_ready
+    /usr/bin/desktop_ready
+}
+
+# Window title changes to the loaded project filename, so match by PID instead
+__maximize() {
+    if [ "${MAXIMIZE:-0}" == "1" ] && [ "${PID:-0}" -gt 0 ]; then
+        local WID i
+        for i in 1 2 3 4 5; do
+            WID=$(wmctrl -l -p | awk -v pid="${PID}" '$3 == pid {print $1; exit}')
+            [ -n "${WID}" ] && break
+            sleep 1
+        done
+        [ -n "${WID}" ] && wmctrl -i -r "${WID}" -b add,maximized_vert,maximized_horz
+    fi
+}

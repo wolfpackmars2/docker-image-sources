@@ -9,17 +9,21 @@ ARG BASE_TAG="1.18.0-rolling-daily"
 FROM ${BASE_IMAGE}:${BASE_TAG}
 #FROM ${BASE_IMAGE}@${BASE_IMAGE_DIGEST} AS app_layer
 USER root
+SHELL ["/bin/bash", "-c"]
+
+ARG DEV=0
 
 ENV DEBIAN_FRONTEND=noninteractive \
+    DEV=${DEV} \
     DOCKER_HOST=unix:///docker/docker.sock \
     DONT_PROMPT_WSL_INSTALL="No_Prompt_please" \
     HOME=/home/kasm-default-profile \
     INST_DIR=/root/src/kasm \
     INST_SCRIPTS="common/core/install/tools/install_tools_deluxe.sh \
                   common/core/install/tools/install_additional_tools.sh \
+                  common/core/install/tools/install_dev_desktop_tools.sh \
                   ubuntu/install/dive/install_dive.sh \
                   common/core/install/chrome/install_chrome.sh \
-                  common/core/install/chromium/install_chromium.sh \
                   ubuntu/install/sublime_text/install_sublime_text.sh \
                   ubuntu/install/vs_code/install_vs_code.sh \
                   common/core/install/new_startup/configure_startup.sh \
@@ -28,13 +32,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
                   ubuntu/core/install/update_default_profile/update_default_profile.sh \
                   common/core/install/gnome_keyring/enable_gnome_keyring.sh" \
     KASM_IMAGE_NAME="kasm-noble-dev-desktop" \
-    KASM_IMAGE_URL="https://hub.docker.com/r/sgroesz/kasm-noble-dev-desktop" \
-    KASM_RX_HOME=$STARTUPDIR/kasmrx \
-    SKIP_CLEAN=true \
     STARTUPDIR=/dockerstartup \
     XDG_RUNTIME_DIR=/docker
-
-ARG DEV=1
 
 WORKDIR ${HOME}
 
@@ -43,7 +42,7 @@ RUN --mount=type=bind,target=/root/src/kasm,source=./src/kasm \
     --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && apt-get upgrade -y && \
-    SKIP_CLEAN=true bash ${INST_DIR}/ubuntu/install/dind_rootless/install_dind_rootless.sh && \
+    bash ${INST_DIR}/ubuntu/install/dind_rootless/install_dind_rootless.sh && \
     cp ${INST_DIR}/ubuntu/install/dind_rootless/modprobe /usr/local/bin/modprobe && \
     chmod +x /usr/local/bin/modprobe && \
     mkdir -p ${XDG_RUNTIME_DIR} && \
@@ -58,15 +57,19 @@ RUN --mount=type=bind,target=/root/src/kasm,source=./src/kasm \
     bash ${INST_DIR}/common/core/install/new_startup/add_startup_item.sh ${INST_DIR}/ubuntu/install/dind_rootless/300-dind_rootless && \
     ${STARTUPDIR}/set_user_permission.sh ${HOME} && \
     rm -f /etc/X11/xinit/XClients && \
-    SKIP_PKG_CLEANUP=true bash ${INST_DIR}/common/core/install/cleanup/cleanup.sh && \
+    bash ${INST_DIR}/common/core/install/cleanup/cleanup.sh && \
     chown -R 1000:0 ${HOME} && \
     mkdir -p /home/kasm-user && \
     chown -R 1000:0 /home/kasm-user && \
-    ls -alhR /home && \
-    ls -alhR ${STARTUPDIR} && env | sort
+    if [[ "${DEV:-0}" == "1" ]]; then \
+        ls -alhR /home && \
+        ls -alhR ${STARTUPDIR} && \
+        env | sort; \
+    fi
 
 # Userspace Runtime
-ENV HOME=/home/kasm-user
+ENV HOME=/home/kasm-user \
+    PATH="/home/kasm-user/.local/bin:${PATH}"
 WORKDIR ${HOME}
 USER 1000
 
