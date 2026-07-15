@@ -14,7 +14,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     INST_DIR=/root/src/kasm \
     INST_SCRIPTS=" \
                   common/core/install/tools/install_additional_tools.sh \
-                  common/core/install/chrome/install_chrome.sh \
+                  ubuntu/install/chrome/install_chrome.sh \
                   common/core/install/new_startup/configure_startup.sh \
                   ubuntu/install/image_info/setup_image_info.sh \
                   ubuntu/core/install/update_default_profile/update_default_profile.sh \

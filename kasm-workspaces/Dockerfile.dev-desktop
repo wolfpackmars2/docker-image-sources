@@ -23,7 +23,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
                   common/core/install/tools/install_additional_tools.sh \
                   common/core/install/tools/install_dev_desktop_tools.sh \
                   ubuntu/install/dive/install_dive.sh \
-                  common/core/install/chrome/install_chrome.sh \
+                  ubuntu/install/chrome/install_chrome.sh \
                   ubuntu/install/sublime_text/install_sublime_text.sh \
                   ubuntu/install/vs_code/install_vs_code.sh \
                   common/core/install/new_startup/configure_startup.sh \
